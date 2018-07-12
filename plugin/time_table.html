@@ -1,0 +1,291 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <!--<meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+	<meta name="viewport" content="width=1024">
+    <meta name="description" content="">
+    <meta name="author" content="李阿閒Axian Lee winxd@dila.edu.tw">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <link rel="shortcut icon" href="logo.png">
+
+    <title data-lang-id="title">大正藏詞彙搜尋與統計分析 - 時間分佈</title>
+
+    <!-- Bootstrap core CSS -->
+	<link href="../css/bootstrap-3.3.4.min.css" rel="stylesheet">	
+	<link href="../css/bootstrap-table.min.css" rel="stylesheet">	
+	
+	<!-- <link href="combined.timetable.min.css?rev=@@hash" rel="stylesheet">	-->
+	
+	
+	<style type="text/css">
+		#dataArea	{
+			width:100%;
+			height:100vh;
+			float:left;
+			overflow:auto;
+		}
+		#dataArea > table	{
+			width:100%;
+		}
+		#infoArea	{
+			overflow:auto;
+			background-image:url(../images/graydotted.png);
+			z-index: 9999;
+			position: absolute;
+			width: 100%;
+			bottom: 0;
+			border-top: 1px solid gray;			
+		}
+		#infoArea h4	{
+			padding:0.5em 0 0 1em;
+			font-weight:bold;
+		}
+		#infoArea h4 > .glyphicon-remove	{
+			float: right;
+			font-size: 14px;
+			color: gray;
+			margin-right: 1em;
+			cursor:pointer;
+		}
+		#info_area_header	{
+			height:80px;
+		}
+		#info_area_table_div	{
+			height:calc(95% - 80px);
+			overflow:auto;
+		}		
+		#keyword_labels	{
+			padding: 20px;
+		}
+		.kw_filter_label , .kw_info_filter_label	{
+			margin-left:1em;
+			font-size: 15px;
+			cursor:pointer;
+			opacity:0.2;
+		}
+		.kw_info_filter_label	{
+			font-size: 13px !important;
+			margin-left:1.5em !important;
+		}		
+		.kw_filter_label_active  , .kw_info_filter_label_active	{
+			opacity:1;
+		}
+		.row_selected td	{
+			background-color:#e2e1e1;
+		}
+		.keyword_dots	{
+			display:inline-block;
+			width:1em;
+			height:1em;
+			border-radius:20px;
+			float:right;
+		}
+		
+	</style>
+  </head>
+
+  <body>
+
+	<div id="dataArea"><div id="keyword_labels"></div></div>
+	<div id="infoArea"></div>
+	
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/javascript" src="../js/jquery-1.9.1.min.js"></script>
+	<script type="text/javascript" src="../js/jquery.scrollTo.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+	<script src="../js/bootstrap-table.min.js"></script>
+	<script src="../js/lang.js"></script>
+	<script src="../js/purl.js"></script>
+	<script src="../js/jinlu.js"></script>
+	
+	<!-- <script src="combined.timetable.min.js?rev=@@hash"></script>-->
+	
+	<script>
+		var data,data_from_parent,kw_colors = {};
+		var linear_dynasties = ['東漢,25,220','三國,220,280','西晉,280,317','東晉,317,420','南北朝,420,589','隋,589,618','唐,618,907','五代十國,907,960','北宋,960,1127','南宋,1127,1279','元,1279,1368','明,1368,1644','清,1644,1911'];
+			
+
+		data = $.extend(true,{},data_from_parent);	//data_from_parent is assign from opener parent window(in event.js)
+		//console.log(data);
+		
+		
+		
+		//製作關鍵字與顏色的對應
+		for(var kw in data)	{
+			for(var i in data[kw])	{
+				kw_colors[kw] = /<mark.+color:([^;]+)[^<]+<\/mark>/gi.exec(data[kw][i].kwic)[1];	//從kwic的<mark>裡面取出關鍵字色碼
+				break;
+			}
+		}
+		
+		//填入表格上方之keyword label
+		var labels = [];		
+		for(var kw in kw_colors)	{
+			labels.push('<span kw="'+kw+'" class="label kw_filter_label kw_filter_label_active" style="background-color:'+kw_colors[kw]+'">'+kw+'</span>');
+		}
+		$('#keyword_labels').html(labels.join(''));
+		
+		
+		
+
+		//表格click
+		$(document).on('click','#main-table tbody tr',function()	{
+			var [work , title , time] = $(this).find('td').get().map(function(td)	{	return $(td).text(); });
+			
+			$('.row_selected').removeClass('row_selected');
+			$(this).addClass('row_selected');
+			
+			//create info area data , 用work過濾
+			var info_data = {};
+			for(var kw in data)	{
+				info_data[kw] = data[kw].filter(function(obj)	{
+					return obj.work == work;
+				});
+			}
+			
+			for(var kw in info_data)	{
+				info_data[kw].sort(function(a,b)	{
+					return parseInt(a.juan,10) - parseInt(b.juan);
+				});
+			}			
+			
+			var info_html = [];
+			for(var kw in info_data)	{
+				for(var j in info_data[kw])	{
+					info_html.push('<tr data-kw="'+kw+'"><td>卷'+info_data[kw][j].juan+'</td><td><a target="_blank" href="http://cbetaonline.dila.edu.tw/'+info_data[kw][j].vol+'p'+info_data[kw][j].lb+'">'+info_data[kw][j].lb+'</a></td><td>'+info_data[kw][j].kwic+'</td></tr>');
+				}
+			}
+			
+			//製作label，用關鍵字圓點來判斷
+			var labels = [];
+			$(this).find('.keyword_dots').each(function()	{
+				var kw = $(this).attr('data-kw');
+				labels.push('<span kw="'+kw+'" class="label kw_info_filter_label kw_info_filter_label_active" style="background-color:'+kw_colors[kw]+'">'+kw+'</span>');
+			});
+			
+			$('#infoArea').html('<div id="info_area_header"><h4>'+work+' '+title+' '+time+'<span class="glyphicon glyphicon-remove" aria-hidden="true"></span></h4>'+labels.join('')+'</div><div id="info_area_table_div"><table id="info_area_table" class="table"><tbody>'+info_html.join('')+'</tbody></table></div>').css('height','50vh');
+			$('#dataArea').css('height','50vh');
+		});		
+				
+	
+		//keyword label click
+		$(document).on('click','.kw_filter_label',function()	{			
+			$(this).toggleClass('kw_filter_label_active');
+			var kw_filter = $('.kw_filter_label_active').get().map(function(o)	{	return o.innerHTML;	});
+			//console.log(kws)	
+			reload_table(kw_filter)
+			
+		});		
+		
+		//info area's keyword label click
+		$(document).on('click','.kw_info_filter_label',function()	{			
+			$(this).toggleClass('kw_info_filter_label_active');
+			$('#info_area_table tr').hide();
+			$('.kw_info_filter_label_active').each(function()	{
+				$('#info_area_table tr[data-kw="'+$(this).text()+'"]').show();
+			});
+
+		});
+		
+		//close info area
+		$(document).on('click','#infoArea h4 > .glyphicon-remove',function()	{
+			$('#infoArea').css('height','0vh');
+			$('#dataArea').css('height','100vh');
+		});		
+		
+		
+		
+		//init
+		var kw_filter = $('.kw_filter_label_active').get().map(function(o)	{	return o.innerHTML;	});
+		reload_table(kw_filter);
+		
+		
+		function reload_table(kw_filter)	{
+		
+			var index = -1,
+				table = [],
+				kill_repeat = [];
+			
+			
+			if(kw_filter.length <=0 )	{
+				$('#dataArea > .bootstrap-table').remove();
+				return;
+			}	
+				
+			//依work找關鍵字	
+			var findKwByWork = function(work)	{	//注意：use global varible "data" , "kw_filter" in this function
+				var res = [];
+				for(var kw in data)	{								
+					if(kw_filter.length > 0 && $.inArray(kw,kw_filter) == -1)	{
+						continue;
+					}			
+					var finded_works = data[kw].filter(function(e)	{return e.work == work;});	//使用原生的filter去找，效率佳
+					if(finded_works.length > 0)	res.push(kw);	//如果找到任一個work，表示有該關鍵字
+				}	
+				//console.log(res)
+				return res;
+			};	
+							
+			//依西元中間年找朝代資訊
+			var findDyInfoByYear = function(year)	{
+				for(var dyi in linear_dynasties)	{
+					var dyData = linear_dynasties[dyi].split(',');
+					if(parseInt(year,10) >= parseInt(dyData[1],10) && parseInt(year,10) < parseInt(dyData[2],10))	{
+						return 	get_dynasty_range_str(linear_dynasties[dyi].split(',')[1],linear_dynasties[dyi].split(',')[2]);
+					}				
+				}
+				return false;
+			};
+			var get_dynasty_range_str = function(s_year,e_year)	{
+				s_year = parseInt(s_year,10);
+				e_year = parseInt(e_year,10);
+				return ''+s_year+' '+(s_year <= 0 ? 'BCE':'CE')+' ~ '+e_year+' '+(e_year <= 0 ? 'BCE':'CE')+'';
+			};
+							
+							
+			for(var kw in data)	{
+				if(kw_filter.length > 0 && $.inArray(kw,kw_filter) == -1)	{
+					continue;
+				}
+				for(var i in data[kw])	{
+					if(data[kw][i].deleted == 1)	continue;
+					
+					var repeat_key = data[kw][i].work+data[kw][i].title;
+					if($.inArray(repeat_key,kill_repeat) == -1)	{
+						index++;
+						table.push('<tr data-index="'+index+'" data-work="'+data[kw][i].work+'"><td>'+data[kw][i].work+'</td><td>'+data[kw][i].title+'</td><td data-year="'+(JINLU[data[kw][i].work].time == '' ? '9999':+JINLU[data[kw][i].work].time)+'">'+(JINLU[data[kw][i].work].time != '' ? findDyInfoByYear(JINLU[data[kw][i].work].time):'')+'</td></tr>');
+						kill_repeat.push(repeat_key);
+					}
+					
+				}	
+			}
+			
+			var table_template = '<table id="main-table" class="table table-hover" data-toggle="table" data-sort-name="years" data-sort-order="asc"><thead><th data-field="works" data-sortable="true">經號</th><th>經名</th><th data-field="years" data-sortable="true" data-sort-name="_years_data"  data-sorter="year_sorter">年代</th></thead><tbody></tbody></table>';
+			$('#dataArea > .bootstrap-table').remove();
+			$('#dataArea').append(table_template);
+			$('#dataArea > table > tbody').html(table.join(''));
+			
+			
+			//將出現的關鍵字做成圓點點塞回table
+			$('#dataArea > table > tbody > tr').each(function()	{
+				var work = $(this).attr('data-work');
+				var color = $(this).attr('data-kw-color');
+				$(this).find('td:eq(1)').append(findKwByWork(work).map(function(kw)	{	return '<span class="keyword_dots" data-kw="'+kw+'" style="background-color:'+kw_colors[kw]+'"></span>';	}).join(''));
+			});
+			
+			$('#dataArea > table').bootstrapTable();	//啟動BootstrapTable
+		}
+		
+		function year_sorter(a,b)	{
+			if (parseInt(a.year,10) < parseInt(b.year,10)) return -1;
+			if (parseInt(a.year,10) > parseInt(b.year,10)) return 1;
+			return 0;			
+		}
+	</script>
+
+  </body>
+</html>

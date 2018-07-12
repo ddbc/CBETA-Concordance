@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <!--<meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+	<meta name="viewport" content="width=1024">
+    <meta name="description" content="">
+    <meta name="author" content="李阿閒Axian Lee winxd@dila.edu.tw">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <link rel="shortcut icon" href="logo.png">
+
+    <title data-lang-id="title">大正藏詞彙搜尋與統計分析 - 地理分佈地圖</title>
+
+    <!-- Bootstrap core CSS -->
+	<link href="../css/bootstrap-3.3.4.min.css" rel="stylesheet">	
+	
+	
+	<!-- <link href="combined.map.min.css?rev=@@hash" rel="stylesheet">	-->
+	
+	<style type="text/css">
+		#dataArea	{
+			width:39%;
+			height:100vh;
+			float:left;
+			overflow:auto;
+		}
+		#dataArea > table	{
+			width:100%;
+		}
+		#mapArea	{
+			width:100%;
+			height:100vh;
+		}
+		#infoArea	{
+			overflow:auto;
+			background-image:url(../images/graydotted.png);
+			border-top: 1.5px solid lightgray;
+		}
+		#infoArea h4	{
+			padding:0.5em 0 0 1em;
+			font-weight:bold;
+		}
+		#infoArea h4 > .glyphicon-remove	{
+			float: right;
+			font-size: 14px;
+			color: gray;
+			margin-right: 1em;
+			cursor:pointer;
+		}
+		#info_area_header	{
+			height:80px;
+		}
+		#info_area_table_div	{
+			height:calc(95% - 80px);
+			overflow:auto;
+		}
+		#mapContainer	{
+			width:60%;
+			height:100vh;
+			float:left;		
+		}
+		#keyword_labels	{
+			padding: 20px;
+		}
+		.kw_filter_label , .kw_info_filter_label	{
+			margin-left:1em;
+			font-size: 15px;
+			cursor:pointer;
+			opacity:0.2;
+		}
+		.kw_info_filter_label	{
+			font-size: 13px !important;
+			margin-left:1.5em !important;
+		}
+		.kw_filter_label_active , .kw_info_filter_label_active	{
+			opacity:1;
+		}
+		.row_selected td	{
+			background-color:#e2e1e1;
+		}
+		.keyword_dots	{
+			display:inline-block;
+			width:1em;
+			height:1em;
+			border-radius:20px;
+			float:right;
+		}
+		
+	</style>
+  </head>
+
+  <body>
+	<div id="dataArea"><div id="keyword_labels"></div><table class="table table-hover"><thead><th>經號</th><th>經名</th><th>年代</th><th>地點</th></thead><tbody></tbody></table></div>
+	<div id="mapContainer"><div id="mapArea"></div><div id="infoArea"></div></div>
+	
+	
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/javascript" src="../js/jquery-1.9.1.min.js"></script>
+	<script type="text/javascript" src="../js/jquery.scrollTo.js"></script>
+	<script src="../js/gmap.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+	<script src="../js/lang.js"></script>
+	<script src="../js/purl.js"></script>
+	<script src="../js/jinlu.js"></script>
+	
+	
+	
+	<script type="text/javascript" src="http://maps.google.com/maps/api/js?key=AIzaSyBHNEjEmxDNbpqjRmQuunzVDIrEncay_PI&language=zh-TW"></script>
+	<!-- <script src="combined.map.min.js?rev=@@hash"></script>-->
+	
+	<script>
+		var gmap,data,data_from_parent,kw_colors = {};
+		var linear_dynasties = ['東漢,25,220','三國,220,280','西晉,280,317','東晉,317,420','南北朝,420,589','隋,589,618','唐,618,907','五代十國,907,960','北宋,960,1127','南宋,1127,1279','元,1279,1368','明,1368,1644','清,1644,1911'];
+		
+		gMap = new gMapObj('mapArea',false);	
+		
+		data = $.extend(true,{},data_from_parent);	//data_from_parent is assign from opener parent window(in event.js)
+		
+		//console.log(data);
+		
+		//製作關鍵字與顏色的對應
+		for(var kw in data)	{
+			for(var i in data[kw])	{
+				kw_colors[kw] = /<mark.+color:([^;]+)[^<]+<\/mark>/gi.exec(data[kw][i].kwic)[1];	//從kwic的<mark>裡面取出關鍵字色碼
+				break;
+			}
+		}
+		
+		//填入表格上方之keyword label
+		var labels = [];		
+		for(var kw in kw_colors)	{
+			labels.push('<span kw="'+kw+'" class="label kw_filter_label kw_filter_label_active" style="background-color:'+kw_colors[kw]+'">'+kw+'</span>');
+		}
+		$('#keyword_labels').html(labels.join(''));
+		
+		
+		//first load google map
+		gMap.load(data,$('.kw_filter_label_active').get().map(function(o)	{	return o.innerHTML;	}),false);
+		
+		
+
+		//表格click
+		$(document).on('click','#dataArea > table > tbody tr',function()	{
+			var marker_index = $(this).attr('data-index');
+			var marker = gMap.getMarkers()[marker_index];
+			var [work , title , time , place] = $(this).find('td').get().map(function(td)	{	return $(td).text(); });
+			
+			$('.row_selected').removeClass('row_selected');
+			$(this).addClass('row_selected');
+			//gMap.getMap().setCenter(marker.getPosition());
+			//gMap.getMap().setZoom(12);
+			google.maps.event.trigger(marker, 'click');
+			
+			//create info area data , 用work過濾
+			var info_data = {};
+			for(var kw in data)	{
+				info_data[kw] = data[kw].filter(function(obj)	{
+					return obj.work == work;
+				});
+			}
+			
+			for(var kw in info_data)	{
+				info_data[kw].sort(function(a,b)	{
+					return parseInt(a.juan,10) - parseInt(b.juan);
+				});
+			}			
+			
+			var info_html = [];
+			for(var kw in info_data)	{
+				for(var j in info_data[kw])	{
+					console.log(info_data[kw][j])
+					info_html.push('<tr data-kw="'+kw+'"><td>卷'+info_data[kw][j].juan+'</td><td><a target="_blank" href="http://cbetaonline.dila.edu.tw/'+info_data[kw][j].vol+'p'+info_data[kw][j].lb+'">'+info_data[kw][j].lb+'</a></td><td>'+info_data[kw][j].kwic+'</td></tr>');
+				}
+			}
+			
+			//製作label，用關鍵字圓點來判斷
+			var labels = [];
+			$(this).find('.keyword_dots').each(function()	{
+				var kw = $(this).attr('data-kw');
+				labels.push('<span kw="'+kw+'" class="label kw_info_filter_label kw_info_filter_label_active" style="background-color:'+kw_colors[kw]+'">'+kw+'</span>');
+			});
+			
+			$('#infoArea').html('<div id="info_area_header"><h4>'+work+' '+title+' '+time+' '+place+'<span class="glyphicon glyphicon-remove" aria-hidden="true"></span></h4>'+labels.join('')+'</div><div id="info_area_table_div"><table id="info_area_table" class="table"><tbody>'+info_html.join('')+'</tbody></table></div>').css('height','50vh');
+			$('#mapArea').css('height','50vh');
+			
+		});
+	
+		//keyword label click
+		$(document).on('click','.kw_filter_label',function()	{			
+			$(this).toggleClass('kw_filter_label_active');
+			var kws = $('.kw_filter_label_active').get().map(function(o)	{	return o.innerHTML;	});
+			//console.log(kws)			
+			gMap.load(data,kws,false);
+		});		
+		
+		//info area's keyword label click
+		$(document).on('click','.kw_info_filter_label',function()	{			
+			$(this).toggleClass('kw_info_filter_label_active');
+			$('#info_area_table tr').hide();
+			$('.kw_info_filter_label_active').each(function()	{
+				$('#info_area_table tr[data-kw="'+$(this).text()+'"]').show();
+			});
+
+		});
+		
+		//close info area
+		$(document).on('click','#infoArea h4 > .glyphicon-remove',function()	{
+			$('#infoArea').css('height','0vh');
+			$('#mapArea').css('height','100vh');			
+		});
+	</script>
+
+  </body>
+</html>

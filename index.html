@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <!--<meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+	<meta name="viewport" content="width=1024">
+    <meta name="description" content="">
+    <meta name="author" content="李阿閒Axian Lee winxd@dila.edu.tw">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <link rel="shortcut icon" href="logo.png">
+
+    <title data-lang-id="title">CBETA詞彙搜尋與分析</title>
+
+    <!-- Bootstrap core CSS -->
+	<link href="css/bootstrap-3.3.4.min.css" rel="stylesheet">
+	
+    <!-- Custom styles for this template -->
+	<link href="css/bootstrap-custom.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" media="screen" href="css/ui.jqgrid-bootstrap.css" />
+	<link href="css/dynatree/skin/ui.dynatree.css" rel="stylesheet" type="text/css" id="skinSheet"/>
+	<link href="css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+	<link href="css/alertify.core.css" rel="stylesheet" type="text/css" />
+	<link href="css/alertify.default.css" rel="stylesheet" type="text/css" />
+	
+	<!--<link href="css/combined.min.css?rev=@@hash" rel="stylesheet">-->
+  </head>
+
+  <body class="index-show">
+
+    <!-- Static navbar -->
+    <div id="top-bar" class="navbar navbar-default navbar-static-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <!--<span class="navbar-brand" data-lang-id="navbar-brand">CBETA詞彙搜尋與分析</span>-->
+        </div>
+		<div class="navbar-collapse collapse">
+          <ul id="function-navs" class="nav navbar-nav navbar-right">
+		    <li role="hl"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-briefcase" aria-hidden="true"></i>&nbsp;<span data-lang-id="langing-file">檔案</span></a>
+				<ul id="function-navs-dropdown" class="dropdown-menu" >
+					<li><a href="javascript:void(null)" onclick="javascript:toView('landing');" data-lang-id="langing-start-new">新的搜尋</a></li>
+					<li><a href="javascript:void(null)" onclick="javascript:exportAllData('#jqGrid')" data-lang-id="saveas">另存新檔</a></li>
+					<li><a href="javascript:void(null)" onclick="$('#landing-load-btn').trigger('click')" data-lang-id="landing-load-save">開啟舊檔</a></li>
+					<!--<li><a href="javascript:void(null)" onclick="saveMainDataToTmp()">將資料存入即時暫存檔</a></li>-->
+					<li id="load_data_from_tmp_btn" class="disabled"><a href="javascript:void(null)" onclick="loadMainDataFromTmp()" data-lang-id="load-cache">載入線上暫存</a></li>
+					<!--<li id="" class=""><a href="javascript:void(null)" onclick="javascript:$('#landing-custom-catalog').trigger('click')" data-lang-id="landing-custom-jinlu">使用自訂經錄</a></li>-->
+				</ul>
+			</li>
+			<li><a href="javascript:toView('landing');"><i class="fa fa-home" aria-hidden="true"></i>&nbsp;<span data-lang-id="home">首頁</span></a></li>
+            <li><a href="?lang=en"><i class="fa fa-globe" aria-hidden="true"></i>&nbsp;<span data-lang-id="lang-siwtch-btn">English</span></a></li>	
+          </ul>
+		  
+          <ul id="navbar-main" class="nav navbar-nav navbar-left">
+		    <div id="main-logo" onclick="javascript:toView('landing');">
+				<img src="images/main-logo.png" />
+			</div>
+		    <!--
+			<li id="nav-term-btn" class="header-nav-btns" style="display:none"><a href="javascript:void(null)" data-lang-id="home">首頁</a></li>
+            <li id="nav-data-btn" class="header-nav-btns" style="display:none"><a href="javascript:void(null)" data-lang-id="data">資料</a></li>
+			<li id="nav-analysis-btn" class="header-nav-btns" style="display:none"><a href="javascript:void(null)" data-lang-id="analysis">分析</a></li>
+			-->
+            <li id="nav-aggregation-btn" class="dropdown">
+              <a href="javascript:void(null)" class="dropdown-toggle" data-toggle="dropdown"><span id="aggregation_root_btn">匯總</span> <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="javascript:void(null)" class="aggregation_btn" data-catalog="bulei" data-lang-id="aggrefation_bulei">部類</a></li>
+                <li><a href="javascript:void(null)" class="aggregation_btn" data-catalog="dynastyLinear" data-lang-id="aggrefation_dynastyLinear">朝代</a></li>
+                <li><a href="javascript:void(null)" class="aggregation_btn" data-catalog="authors" data-lang-id="aggrefation_author">作譯者</a></li>
+                <li><a href="javascript:void(null)" class="aggregation_btn" data-catalog="custom" data-lang-id="aggrefation_custom">custom</a></li>
+				<li><a href="javascript:void(null)" class="aggregation_btn" data-catalog="jings" data-lang-id="aggrefation_jings">所有經</a></li>
+              </ul>
+            </li>
+			
+          </ul>
+		  
+
+        </div><!--/.nav-collapse -->	
+      </div>
+	  <div id="da-links-container"></div> <!-- 九宮格外掛容器 -->
+    </div>
+
+
+
+    <div class="container col-md-12 main-container">
+		<div id="right-area" class="well content-block">
+			<div id="right-container" class="content">
+				<div class="input-group input-group-lg main-search"> 
+					<input id="search-text" type="text" placeholder="Search for..." class="form-control"> 
+					<span class="input-group-btn"> 
+						<button id="search-btn" type="button" class="btn btn-default"><span class="glyphicon glyphicon-search"></span>&nbsp;<span data-lang-id="search-text">檢索</span></button> 
+					</span>
+				</div>
+				<div id="main-area" style="width:1100px;margin:auto;">
+					<div style="margin:auto;position:relative;">
+						<section id="landing-view">
+							<h1 style="margin:3em 0 2em 0;text-align:center" data-lang-id="landing-title">CBETA詞彙搜尋與分析</h1>
+							<div id="landing-main-controls">
+								<div id="landing-main-text-grp" class="input-group">
+									<input id="landing-main-text" class="form-control" placeholder="請輸入搜尋辭彙。多個搜尋辭彙可用空白、逗號或頓號分開。例如：泥洹,涅槃">
+									<div class="input-group-btn"> 
+										<button id="landing-main-select-range" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span id="landing-range-selected" data-lang-id="all-taisho">大正新脩大藏經</span> <span class="caret"></span></button> 
+										<ul id="landing-range-menu" class="dropdown-menu dropdown-menu-right"> 
+											<li><a href="javascript:void(null)" data-lang-id="all-taisho" onclick="javascript:GLOBALS.search_range.valuesTmp = false;$('#landing-range-label').removeClass('landing-range-label-active').text(LANG[GLOBALS.lang]['all-taisho']);$('#landing-range-selected').text(this.innerHTML);">大正新脩大藏經</a></li> 
+											<li><a href="javascript:void(null)" data-lang-id="custom-range" onclick="javascript:ContextSearchRange.show();">自訂範圍</a></li> 
+										</ul> 										
+									</div>
+								</div>
+								<button id="landing-main-btn-search" data-lang-id="landing-main-btn-search">搜尋</button>
+								<button id="landing-main-btn-analysis" data-lang-id="landing-main-btn-analysis">分析</button>
+								<div id="landing-main-more-btn" style="" onclick="$('#right-container').scrollTo($('#landing-main-desc').get(0),500)">
+									<div id="readmore">&gt;&gt; 探索這個工具 &lt;&lt;</div>
+									<!--<i class="fa fa-arrow-circle-down blink" aria-hidden="true"></i>-->
+								</div>
+								<div id="landing-main-desc">
+									<div class="desc-box">
+										<p class="boxicon"><i class="fa fa-binoculars"></i></p>
+											 <p class="label">取得具有前後文的搜尋結果</p>
+											 <p class="desc">利用「CBETA辭彙搜尋與統計」，你可以簡單取得具有前後文的搜尋結果，讓搜尋結果一目了然。覺得前後5個字不夠的話，按下小按鈕，還可以看見前後三行的小文本段落。並且，系統也提供匯出功能，讓你可把搜尋結果完整的打包帶走，搭配自己熟悉的工具，進行資料的整理與探索。</p>
+									</div>   
+									<div class="desc-box">
+										<p class="boxicon"><i class="fa fa-book"></i></p>
+											<p class="label">同時查詢多個辭彙</p>
+											 <p class="desc">「CBETA辭彙搜尋與統計」允許你一次查詢多個關鍵字！！只要你在輸入畫面中，利用「空格」、「分號」或「逗點」把關鍵字分開，我們都會一次幫忙你查詢多組關鍵字，然後你就可以用針對多個關鍵字的查詢結果進行後面的統計分析與比對喔。</p>
+									</div>
+									<div class="desc-box">
+										<p class="boxicon"><i class="fa fa-users"></i></p>
+										<p class="label">以部類、年代、作譯者的角度<br/>進行分析</p>
+											 <p class="desc" style="margin-top:12px">「CBETA辭彙搜尋與統計」讓你由部類、年代、作譯者等三個不同的角度進行加總。只要按下統計分析頁面上的「改變彙總方式」，你馬上就可以選擇三種不同的加總角度。從現在起，觀察兩個或多個不同字彙，在「不同部類」、「不同年代」、「不同譯者」的工作，將變得超級簡單。</p>
+									</div>
+									<div class="desc-box">
+										<p class="boxicon"><i class="fa fa-paper-plane"></i></p>
+										<p class="label">由大範圍的加總<br/>到文字內容的探索</p>
+											 <p class="desc">在任何的分析頁面中，「CBETA辭彙搜尋與統計」提供我們能夠更深入探索細節的可能性。我們可以觀察某一些詞彙在不同部類或不同年代的使用統計，我們也可以更進一步去探查某一經，甚至某一卷的關鍵辭彙出現次數，以及最後，透過系統連回CBETA Online 看看究竟發生了什麼事。</p>
+									</div>   
+									<div class="desc-box">
+										<p class="boxicon"><i class="fa fa-bar-chart"></i></p> 
+										<p class="label">統計辭彙的前後文字</p>
+											 <p class="desc">不只是關鍵詞本身，「CBETA辭彙搜尋與統計」也幫你統計了關鍵詞的前後文字。所以我們可以很簡單的透過「象」與「虎」的搜尋，就知道在大正藏之中，原來最多的象是「白象」、最多的虎也是「白虎」</p>  
+									</div>   
+									<div class="desc-box">
+										<p class="boxicon"><i class="fa fa-map"></i></p>
+										<p class="label">瞭解辭彙分佈地圖</p>
+											<p class="desc">有沒有想過關鍵詞都是在哪裡被翻譯出來的？利用佛經的創作地點作為地理資訊的來源，我們就可以把辭彙搜尋的結果，畫在地圖上，形成就是一個辭彙的地圖。如果我們有多個辭彙還可以來互相比較一下，看看辭彙的被使用是不是與空間分佈有相關囉。</p>
+									</div> 								
+									
+								</div>
+								<div id="landing-main-footer">
+									<a href="#" class="link">最新消息</a>
+									<a href="#" class="link">關於我們</a>
+									<a href="#" class="link">使用說明</a>
+									<div class="copyright">法鼓文理學院．圖書資訊館．數位典藏組版權所有 All right reserved.</div>
+									
+								</div>
+							</div>
+							<div id="landing-upload-things">
+								<label id="landing-load-btn" class="landing-good-btn" for="import_saved_results" style="cursor:pointer" data-lang-id="landing-load-save">載入本機存檔</button></label>
+								<input type="file" id="import_saved_results" name="import_saved_results[]"  accept=".json" style="display:none" />
+								<label id="landing-custom-catalog" class="landing-good-btn"  for="import_files" style="cursor:pointer" data-lang-id="landing-custom-jinlu">使用自訂經錄</label>
+								<input type="file" id="import_files" name="import_files[]"  accept=".json" style="display:none" />								
+							</div>
+						</section>
+						<section id="table-view">
+							<div class="switch-search-analysis-area">
+								<div class="glyphicon glyphicon-eye-open" aria-hidden="true"></div>
+								<div class="switch-search-btn switch-btns" data-lang-id="switch-search-btn">搜尋結果</div>
+								<div class="switch-analysis-btn switch-btns" data-lang-id="switch-analysis-btn">統計分析</div>
+							</div>						
+							<div style="clear:both;margin:4.5em 0 1em 0" >
+								<div id="table-range-area">
+									<button id="table-add-term-btn" class="btn btn-link btn-ls" style="font-size: 16px;padding-top: 1px;"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span>&nbsp;<span data-lang-id="add-term">增加新詞</span></button>，
+									<span data-lang-id="data-range">資料範圍</span>：<div id="table-range-label" style="font-size: 20px;" data-lang-id="all-taisho">大正新脩大藏經</div>
+									<button class="btn btn-link btn-ls" style="vertical-align:top;margin-right:0;padding-right: 0;margin-left: -1em;" onclick="javascript:ContextSearchRange.show();" data-lang-id="change-range">改變範圍</button>
+								</div>								
+								
+							</div>
+
+							<div id="search-result-lists"></div>
+							<div id="tool-list">
+								<div id="search-result-tools">
+									<button class="btn btn-danger search_selected_display_btn" data-action-type="show"><span class="glyphicon glyphicon-eye-open"></span>&nbsp;<span data-lang-id="search-check-show">顯示選擇項目</span></button>
+									<button class="btn btn-danger search_selected_display_btn" data-action-type="hide"><span class="glyphicon glyphicon-eye-close"></span>&nbsp;<span data-lang-id="search-check-hide">隱藏選擇項目</span></button>
+								</div>
+							</div>
+								
+							<div style="clear:both"/>
+							<table id="jqGrid" ></table>
+							<div id="jqGridPager"></div>
+						</section>
+						<section id="search-info-view">
+							<div class="switch-search-analysis-area">
+								<div class="glyphicon glyphicon-eye-open" aria-hidden="true"></div>
+								<div class="switch-search-btn switch-btns" data-lang-id="switch-search-btn">搜尋結果</div>
+								<div class="switch-analysis-btn switch-btns" data-lang-id="switch-analysis-btn">統計分析</div>
+							</div>
+							<div id="seach-keywords"></div>
+							<ol id="search-breadcrumb" class="breadcrumb"></ol>
+						</section>
+						<section id="statistic-view">
+							
+							<div style="clear:both" />
+							<div class="viewTitle"></div>
+							<div>
+									<div class="statistic-content" id="bulei-statistic-table-area">
+										<div class="statistic-tools">
+											<button class="btn btn-primary updateChart_btn" data-gridID="buleiStatisticGrid"><span class="glyphicon glyphicon-refresh"></span>&nbsp;<span data-lang-id="update-chart">更新圖表</span></button>
+											<div class="dropdown changeChartType-dropdown">
+												<button class="btn btn-warning dropdown-toggle changeChartType_btn" type="button" id="1dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+													<span class="changeChartType-dropdown-menu"><span class="glyphicon glyphicon-random"></span>&nbsp;<span data-lang-id="line-chart">折線圖</span></span>
+													<span class="caret"></span>
+												</button>
+												<ul class="dropdown-menu" aria-labelledby="1dropdownMenu1">
+													<li data-gridID="buleiStatisticGrid" data-type="bar"><a href="javascript:void(null)"><span class="glyphicon glyphicon-stats"></span>&nbsp;<span data-lang-id="histogram">長條圖</span></a></li>
+													<li data-gridID="buleiStatisticGrid" data-type="line"><a href="javascript:void(null)"><span class="glyphicon glyphicon-random"></span>&nbsp;<span data-lang-id="line-chart">折線圖</span></a></li>
+												</ul>
+											</div>											
+											<div class="dropdown changePercent-dropdown">
+												<button class="btn btn-warning dropdown-toggle changePercent_btn" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+													<span class="changePercent-dropdown-menu"><span data-lang-id="word-count">出現次數</span></span>
+													<span class="caret"></span>
+												</button>
+												<ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+													<li data-type="bulei,percent"><a href="javascript:void(null)"><span role="percent" data-lang-id="word-percent">字數比例(%)</span></a></li>
+													<li data-type="bulei,count"><a href="javascript:void(null)" role="count"><span data-lang-id="word-count">出現次數</span></a></li>
+												</ul>
+											</div>
+										
+											<div class="dropdown xAxisDisplay-dropdown">
+												<button id="" class="btn btn-default dropdown-toggle xAxisDisplay_btn" data-gridID="buleiStatisticGrid" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" data-lang-id="xAxis-Label">X軸文字</button>
+												<ul class="dropdown-menu" aria-labelledby="">
+													<li data-gridID="buleiStatisticGrid" data-value="show" data-parent-clue="bulei-statistic-table-area"><a href="javascript:void(null)">&nbsp;<span data-lang-id="show">顯示</span></a></li>
+													<li data-gridID="buleiStatisticGrid" data-value="hide" data-parent-clue="bulei-statistic-table-area"><a href="javascript:void(null)">&nbsp;<span data-lang-id="hide">隱藏</span></a></li>
+												</ul>			
+											</div>
+											
+											<button class="btn btn-default canvasExport_btn" data-chartID="buleiChart"><span class="glyphicon glyphicon-save"></span></button>
+										</div>
+										<canvas id="buleiChart" width="1100" height="300" class="canvas_chart"></canvas>
+										<button class="btn btn-default statisticGridExport_btn" data-gridid="buleiStatisticGrid"><span class="glyphicon glyphicon-export"></span></button>
+										<table id="buleiStatisticGrid"></table>
+										<div id="buleiDetailInfo" class="detail_box" style=""></div>
+									</div>
+									<div class="statistic-content" id="dynastyLinear-statistic-table-area">
+										<div class="statistic-tools">
+											<button class="btn btn-primary updateChart_btn" data-gridID="dynastyLinearStatisticGrid"><span class="glyphicon glyphicon-refresh"></span>&nbsp;<span data-lang-id="update-chart">更新圖表</span></button>										
+											<div class="dropdown changePercent-dropdown">
+												<button class="btn btn-warning dropdown-toggle changePercent_btn" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+													<span class="changePercent-dropdown-menu"><span data-lang-id="word-count">出現次數</span></span>
+													<span class="caret"></span>
+												</button>
+												<ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+													<li data-type="dynastyLinear,percent"><a href="javascript:void(null)"><span role="percent" data-lang-id="word-percent">字數比例(%)</span></a></li>
+													<li data-type="dynastyLinear,count"><a href="javascript:void(null)" role="count"><span data-lang-id="word-count">出現次數</span></a></li>
+												</ul>
+											</div>
+											<!--
+											<div class="dropdown xAxisDisplay-dropdown">
+												<button id="" class="btn btn-default dropdown-toggle xAxisDisplay_btn" data-gridID="dynastyLinearStatisticGrid" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" data-lang-id="xAxis-Label">X軸</button>
+												<ul class="dropdown-menu" aria-labelledby="">
+													<li data-gridID="dynastyLinearStatisticGrid" data-value="show" data-parent-clue="dynastyLinear-statistic-table-area"><a href="javascript:void(null)">&nbsp;<span data-lang-id="show">顯示</span></a></li>
+													<li data-gridID="dynastyLinearStatisticGrid" data-value="hide" data-parent-clue="dynastyLinear-statistic-table-area"><a href="javascript:void(null)">&nbsp;<span data-lang-id="hide">隱藏</span></a></li>
+												</ul>			
+											</div>
+											-->
+											<button class="btn btn-default canvasExport_btn" data-chartID="dynastyLinearChart"><span class="glyphicon glyphicon-save"></span></button>
+										</div>								
+										<canvas id="dynastyLinearChart" width="1100" height="300" class="canvas_chart"></canvas>	
+										<button class="btn btn-default statisticGridExport_btn" data-gridid="dynastyLinearStatisticGrid"><span class="glyphicon glyphicon-export"></span></button>
+										<table id="dynastyLinearStatisticGrid"></table>
+										<div id="dynastyLinearDetailInfo" class="detail_box" style=""></div>
+									</div>									
+									<div class="statistic-content" id="authors-statistic-table-area">
+										<div class="statistic-tools">
+											<button class="btn btn-primary updateChart_btn" data-gridID="authorsStatisticGrid"><span class="glyphicon glyphicon-refresh"></span>&nbsp;<span data-lang-id="update-chart">更新圖表</span></button>	
+											<div class="dropdown changeChartType-dropdown">
+												<button class="btn btn-warning dropdown-toggle changeChartType_btn" type="button" id="1dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+													<span class="changeChartType-dropdown-menu"><span class="glyphicon glyphicon-random"></span>&nbsp;<span data-lang-id="line-chart">折線圖</span></span>
+													<span class="caret"></span>
+												</button>
+												<ul class="dropdown-menu" aria-labelledby="1dropdownMenu1">
+													<li data-gridID="authorsStatisticGrid" data-type="bar"><a href="javascript:void(null)"><span class="glyphicon glyphicon-stats"></span>&nbsp;<span data-lang-id="histogram">長條圖</span></a></li>
+													<li data-gridID="authorsStatisticGrid" data-type="line" data-type="line"><a href="javascript:void(null)"><span class="glyphicon glyphicon-random"></span>&nbsp;<span data-lang-id="line-chart">折線圖</span></a></li>
+												</ul>
+											</div>											
+											<div class="dropdown changePercent-dropdown">
+												<button class="btn btn-warning dropdown-toggle changePercent_btn" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+													<span class="changePercent-dropdown-menu"><span data-lang-id="word-count">出現次數</span></span>
+													<span class="caret"></span>
+												</button>
+												<ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+													<li data-type="authors,percent"><a href="javascript:void(null)"><span role="percent" data-lang-id="word-percent">字數比例(%)</span></a></li>
+													<li data-type="authors,count"><a href="javascript:void(null)" role="count"><span data-lang-id="word-count">出現次數</span></a></li>
+												</ul>
+											</div>
+											
+											<div class="dropdown xAxisDisplay-dropdown">
+												<button id="" class="btn btn-default dropdown-toggle xAxisDisplay_btn" data-gridID="authorsStatisticGrid" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" data-lang-id="xAxis-Label">X軸</button>
+												<ul class="dropdown-menu" aria-labelledby="">
+													<li data-gridID="authorsStatisticGrid" data-value="show" data-parent-clue="authors-statistic-table-area"><a href="javascript:void(null)">&nbsp;<span data-lang-id="show">顯示</span></a></li>
+													<li data-gridID="authorsStatisticGrid" data-value="hide" data-parent-clue="authors-statistic-table-area"><a href="javascript:void(null)">&nbsp;<span data-lang-id="hide">隱藏</span></a></li>
+												</ul>			
+											</div>
+											
+											<button class="btn btn-default canvasExport_btn" data-chartID="authorsChart"><span class="glyphicon glyphicon-save"></span></button>
+										</div>								
+										<canvas id="authorsChart" width="1100" height="300" class="canvas_chart"></canvas>
+										<button class="btn btn-default statisticGridExport_btn" data-gridid="authorsStatisticGrid"><span class="glyphicon glyphicon-export"></span></button>
+										<table id="authorsStatisticGrid"></table>
+										<div id="authorsDetailInfo" class="detail_box" style=""></div>
+									</div>
+									<div class="statistic-content" id="custom-statistic-table-area">
+										<div class="statistic-tools">
+											<button class="btn btn-primary updateChart_btn" data-gridID="customStatisticGrid"><span class="glyphicon glyphicon-refresh"></span>&nbsp;<span data-lang-id="update-chart">更新圖表</span></button>	
+											<button class="btn btn-warning changeChartType_btn" data-gridID="customStatisticGrid" data-type="bar"><span class="glyphicon glyphicon-stats"></span>&nbsp;<span data-lang-id="histogram">長條圖</span></button>
+											<button class="btn btn-warning changeChartType_btn" data-gridID="customStatisticGrid" data-type="line" style="display:none"><span class="glyphicon glyphicon-random"></span>&nbsp;<span data-lang-id="line-chart">折線圖</span></button>
+											<button class="btn btn-default canvasExport_btn" data-chartID="customChart"><span class="glyphicon glyphicon-save"></span></button>
+										</div>								
+										<canvas id="customChart" width="1100" height="300" class="canvas_chart"></canvas>	
+										<button class="btn btn-default statisticGridExport_btn" data-gridid="customStatisticGrid"><span class="glyphicon glyphicon-export"></span></button>
+										<table id="customStatisticGrid"></table>
+										<div id="customDetailInfo" class="detail_box" style=""></div>
+									</div>	
+									<div class="statistic-content" id="jings-statistic-table-area">
+										<div class="statistic-tools">
+											<button class="btn btn-primary updateChart_btn" data-gridID="jingsStatisticGrid"><span class="glyphicon glyphicon-refresh"></span>&nbsp;<span data-lang-id="update-chart">更新圖表</span></button>
+											<div class="dropdown changeChartType-dropdown">
+												<button class="btn btn-warning dropdown-toggle changeChartType_btn" type="button" id="1dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+													<span class="changeChartType-dropdown-menu"><span class="glyphicon glyphicon-random"></span>&nbsp;<span data-lang-id="line-chart">折線圖</span></span>
+													<span class="caret"></span>
+												</button>
+												<ul class="dropdown-menu" aria-labelledby="1dropdownMenu1">
+													<li data-gridID="jingsStatisticGrid" data-type="bar"><a href="javascript:void(null)"><span class="glyphicon glyphicon-stats"></span>&nbsp;<span data-lang-id="histogram">長條圖</span></a></li>
+													<li data-gridID="jingsStatisticGrid" data-type="line"><a href="javascript:void(null)"><span class="glyphicon glyphicon-random"></span>&nbsp;<span data-lang-id="line-chart">折線圖</span></a></li>
+												</ul>
+											</div>											
+											<div class="dropdown changePercent-dropdown">
+												<button class="btn btn-warning dropdown-toggle changePercent_btn" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+													<span class="changePercent-dropdown-menu"><span data-lang-id="word-count">出現次數</span></span>
+													<span class="caret"></span>
+												</button>
+												<ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+													<li data-type="jings,percent"><a href="javascript:void(null)"><span role="percent" data-lang-id="word-percent">字數比例(%)</span></a></li>
+													<li data-type="jings,count"><a href="javascript:void(null)" role="count"><span data-lang-id="word-count">出現次數</span></a></li>
+												</ul>
+											</div>
+											
+											<div class="dropdown xAxisDisplay-dropdown">
+												<button id="" class="btn btn-default dropdown-toggle xAxisDisplay_btn" data-gridID="jingsStatisticGrid" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" data-lang-id="xAxis-Label">X軸</button>
+												<ul class="dropdown-menu" aria-labelledby="">
+													<li data-gridID="jingsStatisticGrid" data-value="show" data-parent-clue="jings-statistic-table-area"><a href="javascript:void(null)">&nbsp;<span data-lang-id="show">顯示</span></a></li>
+													<li data-gridID="jingsStatisticGrid" data-value="hide" data-parent-clue="jings-statistic-table-area"><a href="javascript:void(null)">&nbsp;<span data-lang-id="hide">隱藏</span></a></li>
+												</ul>			
+											</div>
+											
+											<button class="btn btn-default canvasExport_btn" data-chartID="jingsChart"><span class="glyphicon glyphicon-save"></span></button>
+										</div>
+										<canvas id="jingsChart" width="1100" height="300" class="canvas_chart"></canvas>
+										<button class="btn btn-default statisticGridExport_btn" data-gridid="jingsStatisticGrid"><span class="glyphicon glyphicon-export"></span></button>
+										<table id="jingsStatisticGrid"></table>
+										<div id="jingsDetailInfo" class="detail_box" style=""></div>
+									</div>									
+									
+							</div>
+						</section>
+						<section id="jing-level-view">							
+							<button class="btn btn-primary updateChart_btn" data-gridID="jingLevelStatisticGrid" style="position: absolute;top: 32px;right: 0;"><span class="glyphicon glyphicon-refresh"></span>&nbsp;<span data-lang-id="update-chart">更新圖表</span></button>
+							<div class="dropdown changeChartType-dropdown" style="position: absolute;top: 32px;right: 94px;">
+								<button class="btn btn-warning dropdown-toggle changeChartType_btn" type="button" id="1dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+									<span class="changeChartType-dropdown-menu"><span class="glyphicon glyphicon-random"></span>&nbsp;<span data-lang-id="line-chart">折線圖</span></span>
+									<span class="caret"></span>
+								</button>
+								<ul class="dropdown-menu" aria-labelledby="1dropdownMenu1">
+									<li data-gridID="jingLevelStatisticGrid" data-type="bar"><a href="javascript:void(null)"><span class="glyphicon glyphicon-stats"></span>&nbsp;<span data-lang-id="histogram">長條圖</span></a></li>
+									<li data-gridID="jingLevelStatisticGrid" data-type="line"><a href="javascript:void(null)"><span class="glyphicon glyphicon-random"></span>&nbsp;<span data-lang-id="line-chart">折線圖</span></a></li>
+								</ul>
+							</div>
+							<div class="dropdown xAxisDisplay-dropdown">
+								<button id="" class="btn btn-default dropdown-toggle xAxisDisplay_btn" data-gridID="jingLevelStatisticGrid" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" data-lang-id="xAxis-Label" style="top:-3px">X軸</button>
+								<ul class="dropdown-menu" aria-labelledby="" style="top:17px">
+									<li data-gridID="jingLevelStatisticGrid" data-value="show" data-parent-clue="jing-level-view"><a href="javascript:void(null)">&nbsp;<span data-lang-id="show">顯示</span></a></li>
+									<li data-gridID="jingLevelStatisticGrid" data-value="hide" data-parent-clue="jing-level-view"><a href="javascript:void(null)">&nbsp;<span data-lang-id="hide">隱藏</span></a></li>
+								</ul>			
+							</div>							
+							<button class="btn btn-default canvasExport_btn" data-chartID="jingLevelChart" style="top:76px"><span class="glyphicon glyphicon-save"></span></button>
+							<div class="viewTitle"></div>
+							<canvas id="jingLevelChart" width="1100" height="300" class="canvas_chart"></canvas>	
+							<button class="btn btn-default statisticGridExport_btn" data-gridid="jingLevelStatisticGrid"><span class="glyphicon glyphicon-export"></span></button>
+							<table id="jingLevelStatisticGrid"></table>
+							<div id="jingLevelDetailInfo" class="detail_box" style=""></div>
+						</section>
+						<section id="juan-level-view">							
+							<button class="btn btn-primary updateChart_btn" data-gridID="juanLevelStatisticGrid" style="position: absolute;top: 32px;right: 0;"><span class="glyphicon glyphicon-refresh"></span>&nbsp;<span data-lang-id="update-chart">更新圖表</span></button>	
+							<div class="dropdown changeChartType-dropdown" style="position: absolute;top: 32px;right: 94px;">
+								<button class="btn btn-warning dropdown-toggle changeChartType_btn" type="button" id="1dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+									<span class="changeChartType-dropdown-menu"><span class="glyphicon glyphicon-random"></span>&nbsp;<span data-lang-id="line-chart">折線圖</span></span>
+									<span class="caret"></span>
+								</button>
+								<ul class="dropdown-menu" aria-labelledby="1dropdownMenu1">
+									<li data-gridID="juanLevelStatisticGrid" data-type="bar"><a href="javascript:void(null)"><span class="glyphicon glyphicon-stats"></span>&nbsp;<span data-lang-id="histogram">長條圖</span></a></li>
+									<li data-gridID="juanLevelStatisticGrid" data-type="line"><a href="javascript:void(null)"><span class="glyphicon glyphicon-random"></span>&nbsp;<span data-lang-id="line-chart">折線圖</span></a></li>
+								</ul>
+							</div>
+							<div class="dropdown xAxisDisplay-dropdown">
+								<button id="" class="btn btn-default dropdown-toggle xAxisDisplay_btn" data-gridID="juanLevelStatisticGrid" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" data-lang-id="xAxis-Label" style="top:-3px">X軸</button>
+								<ul class="dropdown-menu" aria-labelledby="" style="top:17px">
+									<li data-gridID="juanLevelStatisticGrid" data-value="show" data-parent-clue="juan-level-view"><a href="javascript:void(null)">&nbsp;<span data-lang-id="show">顯示</span></a></li>
+									<li data-gridID="juanLevelStatisticGrid" data-value="hide" data-parent-clue="juan-level-view"><a href="javascript:void(null)">&nbsp;<span data-lang-id="hide">隱藏</span></a></li>
+								</ul>			
+							</div>								
+							<button class="btn btn-default canvasExport_btn" data-chartID="juanLevelChart" style="top:76px"><span class="glyphicon glyphicon-save"></span></button>
+							<div class="viewTitle"></div>
+							<canvas id="juanLevelChart" width="1100" height="300" class="canvas_chart"></canvas>							
+							<table id="juanLevelStatisticGrid"></table>
+							<button id="juan_kwic_export_btn" class="btn btn-default" data-kwicid="jaun_kwic"><span class="glyphicon glyphicon-export"></span></button>
+							<div id="jaun_kwic" style="width:500px;min-height:400px;float:right">KWIC Area</div>
+							
+						</section>						
+						<section id="loading-hold-view">
+							<img src="images/ajax-loader.gif" />
+						</section>
+					</div>					
+				</div>
+			</div>
+		</div>
+    </div> <!-- /container -->
+	
+	<div id="alert_msg" class="alert alert-danger alert-dismissible" role="alert" >
+	  <button type="button" class="close" aria-label="Close" onclick="javascript:$(this).parent().fadeOut(300);"><span aria-hidden="true">&times;</span></button>
+	  <section></section>
+	</div>
+
+	<!-- Modals -->
+
+	<!-- 關鍵字 progress bar modal -->
+	<div id="term-progress-modal" class="modal fade" tabindex="-1" role="dialog" data-backdrop="static">
+	  <div class="modal-dialog" role="document">
+		<div class="modal-content">
+		  <div class="modal-header">
+			<h4 class="modal-title">Please Wait...</h4>
+		  </div>
+		  <div class="modal-body">
+				<div id="search-progress-label" style="text-align:center;padding-top:10px"><img src="images/ajax-loader.gif" /><br/>Keyword fetching .... </div>
+				<div id="search-progress-bar" class="progress" style="">
+					<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="">0%</div>
+				</div>			
+		  </div>
+		  <div class="modal-footer">
+			<button id="cancel-search-btn" type="button" class="btn btn-link">Cancel</button>
+		  </div>
+		</div>
+	  </div>
+	</div>	
+	
+	<!-- 改變彙總方式 modal -->
+	<div id="change-aggregation-modal" class="modal fade" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" data-lang-id="choose-aggregation">選擇彙總方式</h4>
+				</div>
+				<div class="modal-body">
+					<div class="radio">
+						<label>
+							<input id="" name="aggregation-modal-radio" value="bulei" class="" type="radio" checked>
+							<span data-lang-id="aggre-bulei">依部類加總</span>
+						</label>
+					</div>
+					<div class="radio">
+						<label>
+							<input id="" name="aggregation-modal-radio" value="dynastyLinear"  class=""  type="radio">
+							<span data-lang-id="aggre-time">依時間加總</span>
+						</label>
+					</div>		
+					<div class="radio">
+						<label>
+							<input id="" name="aggregation-modal-radio" value="authors" class=""  type="radio">
+							<span data-lang-id="aggre-author">依作譯者加總</span>
+						</label>
+					</div>	
+					<div style="clear:both" ></div>
+					<div class="radio">
+						<label>
+							<input id="" name="aggregation-modal-radio" value="jings"  class=""  type="radio">
+							<span data-lang-id="aggre-jings">不彙總(所有經典)</span>
+						</label>
+					</div>			
+				</div>
+				<div class="modal-footer">
+					<button id="change-aggregation-submit" class="btn btn-success" data-lang-id="start-analysis">開始分析</button>
+				</div>				
+			</div>
+		</div>
+	</div>
+	
+	<!-- 小視窗 -->
+	<div id="collate-window" class="alert alert-danger fade in" openingID="">
+		<div role="collate-window-header" style="">
+			<button aria-hidden="true" class="close" type="button" onclick="javascript:collate_window_close()" style="float:left;margin: -3px 7px 0 0;">×</button>
+			<span role="main-title"></span>
+		</div>
+		
+		<div role="collate-window-content" style="float:left;width:100%;color:black;margin-top:5px;padding:10px;background-color:white;border:1px solid black;max-height:450px;overflow:auto"></div><!--<h4 style="float:left;font-weight:bold">校勘</h4>-->
+	</div>
+	
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
+	<script type="text/javascript" src="js/jquery.jqGrid.min.js"></script>
+	<script type="text/ecmascript" src="js/grid.locale-en.js"></script>
+	<script type="text/javascript" src="js/jquery.scrollTo.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+	<script src="js/lang.js"></script>
+	<script src="js/purl.js"></script>
+	<script src="js/init.js"></script>
+	<script src="js/events.js"></script>
+	<script src="js/functions.js"></script>
+	<script src="js/jinlu.js"></script>
+	<script src="js/Chart.min.js"></script>
+	<script src="js/jquery.blockUI.js"></script>
+	<script src="js/contextSearchRange.js"></script>
+	<script src="js/tableToExcel.js"></script>
+	<script src="js/alertify.js"></script>
+	<script src="js/dilaDaLinks.js"></script>
+	<script type="text/javascript" src="js/dynatree/dynatree_jq/jquery.cookie.js" ></script>
+	<script type="text/javascript" src="js/dynatree/dynatree_jq/jquery-ui.custom.min.js" ></script>
+	<script type="text/javascript" src="js/dynatree/jquery.dynatree.js" ></script>	
+	<script src="js/start.js"></script>
+	
+	
+	<!--<script src="js/combined.min.js?rev=@@hash"></script>-->
+	
+
+	
+
+  </body>
+</html>
