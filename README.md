@@ -17,7 +17,7 @@
 just fork this project and put it on your web server,that's all.
 
 ## Build
-This is full source code for this project.You can use it directly, but in the production version, The html, css, and js files will be optimized through minimized, bundled, and cleand for the performance using gulp, but this is not necessary, if you are interested, some resources here:
+This is full source code for this project , you can use it directly.But in the production version, the html, css, and js files will be optimized through minimized, bundled, and cleand for the performance using gulp, but this is not necessary, if you are interested, some resources here:
   -  [gulp](https://gulpjs.com/)
   - [webpack](https://webpack.js.org/)
 
