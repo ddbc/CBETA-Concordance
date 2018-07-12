@@ -13,7 +13,7 @@
 
 ## Installation
 
-將所有檔案放到你的網頁目錄下即可 , enjoy it.  
+將所有檔案放到你的網頁目錄下即可 , enjoy it.
 just fork this project and put it on your web server,that's all.
 
 ## Build
@@ -23,5 +23,5 @@ This is full source code for this project.You can use it directly, but in the pr
 
 ## Author
 
-李阿閒@DILA  
+李阿閒@DILA
 winxd@dila.edu.tw
