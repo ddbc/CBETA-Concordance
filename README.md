@@ -25,3 +25,6 @@ This is full source code for this project , you can use it directly.But in the p
 
 李阿閒@DILA  
 winxd@dila.edu.tw
+
+## License
+MIT License
